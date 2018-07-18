@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-# mnist = input_data.read_data_sets('../data/MNIST_data', one_hot=True)
+mnist = input_data.read_data_sets('../data/MNIST_data', one_hot=True)
 # 可以将数据集更改为fashion_mnist
-mnist = input_data.read_data_sets('../data/fashion_mnist', one_hot=True)
+# mnist = input_data.read_data_sets('../data/fashion_mnist', one_hot=True)
 sess = tf.InteractiveSession()
 
 
