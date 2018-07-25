@@ -1,8 +1,6 @@
 """MLP for MNIST"""
 import tensorflow as tf
-import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
-import sklearn.preprocessing as prep
 
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 sess = tf.InteractiveSession()
@@ -22,46 +20,33 @@ def get_biases(num_bias):
     return bias
 
 
-class MLP(object):
+num_input = 784
+num_hidden = 300
+num_output = 10
+learning_rate = 0.1
 
-    def __init__(self, num_input, num_hidden, num_output, learning_rate):
-        self.num_input = num_input
-        self.num_hidden = num_hidden
-        self.num_output = num_output
-        self.x = tf.placeholder(tf.float32, shape=[None, num_input])
-        self.y = tf.placeholder(tf.float32, shape=[None, num_output])
-        self.keep_prob = tf.placeholder(tf.float32)
-        self.learning_rate = learning_rate
+keep_prob = tf.placeholder(tf.float32)
+x = tf.placeholder(tf.float32, [None, num_input])
+y = tf.placeholder(tf.float32, [None, num_output])
 
-    def model(self):
-        """Define model construction."""
-        w1 = get_weights(self.num_input, self.num_hidden)
-        b1 = get_biases(self.num_hidden)
-        w2 = get_weights(self.num_hidden, self.num_output)
-        b2 = get_biases(self.num_output)
-        hidden_logits = tf.add(tf.matmul(self.x, w1), b1)
-        hidden_features = tf.nn.relu(hidden_logits)
-        hidden_drop = tf.nn.dropout(hidden_features, keep_prob=self.keep_prob)
-        output_logits = tf.add(tf.matmul(hidden_drop, w2), b2)
-        output_features = tf.nn.relu(output_logits)
-        return output_features
+w1 = get_weights(num_input, num_hidden)
+b1 = get_biases(num_hidden)
+w2 = get_weights(num_hidden, num_output)
+b2 = get_biases(num_output)
 
-    def train(self, output_features):
-        """Training the model"""
-        global_step = tf.Variable([0], trainable=False)
-        loss = tf.reduce_mean(-tf.reduce_sum(self.y * tf.log(output_features),
-                                             reduction_indices=[1]))
-        train_step = tf.train.AdagradOptimizer(self.learning_rate).minimize(loss, global_step=global_step)
-        return train_step
+hidden_features = tf.nn.relu(tf.matmul(x, w1) + b1)
+hidden_drop = tf.nn.dropout(hidden_features, keep_prob=keep_prob)
+output_features = tf.nn.softmax(tf.matmul(hidden_drop, w2) + b2)
 
-    def run_train(self, training_steps, keep_prob):
-        sess.run(tf.global_variables_initializer())
-        for i in range(training_steps):
-            X, Y = mnist.train.next_batch(100)
-            loss, global_steps = sess.run(training_steps,
-                                          feed_dict={self.x: X, self.keep_prob: keep_prob, self.y: Y})
-            if i % 1000 is False:
-                print("steps:", '%05d' % global_steps,
-                      "loss:", "{:.9f}".format(loss))
+loss = tf.reduce_mean(-tf.reduce_sum(y * tf.log(output_features), reduction_indices=[1]))
+train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss)
 
-    def run_test(self):
+sess.run(tf.global_variables_initializer())
+for i in range(10000):
+    X, Y = mnist.train.next_batch(10)
+    _, total_loss = sess.run([train_step, loss], feed_dict={x: X, keep_prob: 0.5, y: Y})
+    if i % 1000 == 0:
+        print(i, total_loss)
+    # train_step返回的不是数值，只是一个更新操作，需要得到的所有数值需要传递近sess.run()当中
+    # 变量名称最好不要重复
+'''定义准确率'''
