@@ -49,4 +49,18 @@ for i in range(10000):
         print(i, total_loss)
     # train_step返回的不是数值，只是一个更新操作，需要得到的所有数值需要传递近sess.run()当中
     # 变量名称最好不要重复
-'''定义准确率'''
+'''
+定义准确率
+在测试阶段，不对网络的权值进行更新，只进行前向传播。
+'''
+
+X = mnist.test.images
+Y = mnist.test.labels
+
+out = tf.arg_max(output_features, 1)
+out_ = tf.arg_max(y, 1)
+accu = tf.equal(out, out_)
+accu = tf.cast(accu, tf.float32)
+accuracy = tf.reduce_mean(accu)
+accu_ = sess.run(accuracy, feed_dict={x: X, y: Y, keep_prob: 1.0})
+print(accu_)
